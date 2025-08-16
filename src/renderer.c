@@ -17,15 +17,15 @@ r_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
   
-  g_renderer.shaders.v_ss_line = r_compile_shader(V_SS_Line_Path,      GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_Primitive_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_Text_Path,      GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_Primitive_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_Line_Path,      GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_line = r_compile_shader(V_SS_LINE_PATH,      GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_PRIMITIVE_PATH, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_TEXT_PATH,      GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_PRIMITIVE_PATH, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_LINE_PATH,      GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_line    = r_compile_shader(F_Line_Path,    GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_texture = r_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_text    = r_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_line    = r_compile_shader(F_COLOR_PATH,    GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_texture = r_compile_shader(F_TEXTURE_PATH, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_text    = r_compile_shader(F_TEXT_PATH,    GL_FRAGMENT_SHADER);
   
   // Screenspace
   {
@@ -593,7 +593,7 @@ r_init()
     g_renderer.fonts_max   = 2;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    r_load_font(Font_Inconsolata);
+    r_load_font(FONT_INCONSOLATA_PATH);
   }
 
   scratch_end(&scratch);
@@ -643,7 +643,7 @@ r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances)
 }
 
 function void
-r_render(Mat4f32 view, Mat4f32 projection)
+r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
 {
   // Bind textures
   for (u32 idx = 0; idx < g_renderer.texture_count; idx += 1)
@@ -709,7 +709,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_triangle]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_triangle]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_triangle]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_triangle]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
 
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_triangle]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_triangle]->count, g_renderer.batches[Render_Batch_SS_triangle]->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_triangle]->count);
@@ -720,7 +720,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_quad]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_quad]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_quad]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_quad]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
 
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_quad]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_quad]->count, g_renderer.batches[Render_Batch_SS_quad]->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_quad]->count);
@@ -731,7 +731,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_text]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_text]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.batches[Render_Batch_SS_text]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.batches[Render_Batch_SS_text]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
 
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_text]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_text]->count, g_renderer.batches[Render_Batch_SS_text]->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_text]->count);
@@ -747,7 +747,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_Line]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_Line]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_line, g_renderer.batches[Render_Batch_SS_Line]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_line, g_renderer.batches[Render_Batch_SS_Line]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
     
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_Line]->instance_vbo, 0, sizeof(Line2D) * g_renderer.batches[Render_Batch_SS_Line]->count, g_renderer.batches[Render_Batch_SS_Line]->data);
     glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.batches[Render_Batch_SS_Line]->count);
@@ -755,7 +755,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glDepthFunc(GL_LESS); 
   }
 
-  os_swap_buffers();
+  os_swap_buffers(window);
 
   glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -810,6 +810,12 @@ function void
 r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_quad], position, scale, uv_min, uv_max, color, texture_id);
+}
+
+function void
+r_draw_2d_quad_colored(Vec2f32 position, Vec2f32 scale, Vec4f32 color)
+{
+	_r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_quad], position, scale, vec2f32(0.0f, 0.0), vec2f32(1.0f, 1.0f), color, 0xFFFFFFFFu);
 }
 
 function void
@@ -960,7 +966,7 @@ _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f3
   Vec3f32 normal = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
 
   Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
-  r_draw_3d_line(transform.translation, end, Color_Yellow(1.0f));
+  r_draw_3d_line(transform.translation, end, COLOR_YELLOW(1.0f));
 
   Primitive3D *data = (Primitive3D*)render_batch->data;
   data[render_batch->count].transform = transform;
@@ -1165,7 +1171,7 @@ function void
 r_load_font(String8 relative_path) 
 {
   Scratch scratch = scratch_begin(0, 0);
-  f32 font_height = FontSize;
+  f32 font_height = FONT_LOAD_SIZE;
 
   if (g_renderer.texture_count >= g_renderer.texture_max)
   {
@@ -1201,12 +1207,12 @@ r_load_font(String8 relative_path)
  
   s32 atlas_width = 512, atlas_height = 512;
   u8* atlas_bitmap = push_array(scratch.arena, u8, atlas_width * atlas_height);
-  stbtt_packedchar char_data[MaxFontGlyphs];
+  stbtt_packedchar char_data[MAX_FONT_GLYPHS];
  
   stbtt_pack_context pack;
   stbtt_PackBegin(&pack, atlas_bitmap, atlas_width, atlas_height, atlas_width, 1, NULL);
   stbtt_PackSetOversampling(&pack, 1, 1);
-  stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, MaxFontGlyphs, char_data);
+  stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, MAX_FONT_GLYPHS, char_data);
   stbtt_PackEnd(&pack);
  
   GLuint texture;
@@ -1218,7 +1224,7 @@ r_load_font(String8 relative_path)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
  
-  for (s32 i = 0; i < MaxFontGlyphs; i++)
+  for (s32 i = 0; i < MAX_FONT_GLYPHS; i++)
   {
     Glyph* glyph = &g_renderer.fonts[g_renderer.fonts_count].glyphs[i];
     stbtt_packedchar* ch = &char_data[i];

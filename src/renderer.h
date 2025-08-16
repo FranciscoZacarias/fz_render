@@ -10,27 +10,38 @@
 #include "fz_std\\external\\stb_image.h"
 
 // Fonts
-#define Font_ProggyClean     S("\\assets\\fonts\\ProggyClean.ttf")
-#define Font_Inconsolata     S("\\assets\\fonts\\Inconsolata.ttf")
+#define FONT_PROGGY_CLEAN_PATH S("\\assets\\fonts\\ProggyClean.ttf")
+#define FONT_INCONSOLATA_PATH  S("\\assets\\fonts\\Inconsolata.ttf")
 
 ///////////////////////////////////////////////////////
 // @Section: Screenspace primitives
 
 // Vertex Shaders
-#define V_SS_Primitive_Path S("\\src\\shaders\\v_ss_primitive.glsl")
-#define V_SS_Text_Path      S("\\src\\shaders\\v_ss_text.glsl")
-#define V_SS_Line_Path      S("\\src\\shaders\\v_ss_line.glsl")
-#define V_WS_Primitive_Path S("\\src\\shaders\\v_ws_primitive.glsl")
-#define V_WS_Line_Path      S("\\src\\shaders\\v_ws_line.glsl")
+#define V_SS_PRIMITIVE_PATH S("\\src\\shaders\\v_ss_primitive.glsl")
+#define V_SS_TEXT_PATH      S("\\src\\shaders\\v_ss_text.glsl")
+#define V_SS_LINE_PATH      S("\\src\\shaders\\v_ss_line.glsl")
+#define V_WS_PRIMITIVE_PATH S("\\src\\shaders\\v_ws_primitive.glsl")
+#define V_WS_LINE_PATH      S("\\src\\shaders\\v_ws_line.glsl")
 
 // Fragment Shaders
-#define F_Texture_Path S("\\src\\shaders\\f_texture.glsl")
-#define F_Text_Path    S("\\src\\shaders\\f_text.glsl")
-#define F_Line_Path    S("\\src\\shaders\\f_line.glsl")
+#define F_TEXTURE_PATH S("\\src\\shaders\\f_texture.glsl")
+#define F_TEXT_PATH    S("\\src\\shaders\\f_text.glsl")
+#define F_COLOR_PATH    S("\\src\\shaders\\f_color.glsl")
+
+///////////////////////////////////////////////////////
+// @Section: Forward declare
+typedef struct Texture_Info Texture_Info;
+typedef struct Primitive2D Primitive2D;
+typedef struct Line2D Line2D;
+typedef struct Primitive3D Primitive3D;
+typedef struct Line3D Line3D;
+typedef struct Glyph Glyph;
+typedef struct Font Font;
+typedef struct Render_Batch Render_Batch;
+typedef struct Renderer Renderer;
 
 ///////////////////////////////////////////////////////
 // @Section: Texture
-typedef struct Texture_Info Texture_Info;
 struct Texture_Info
 {
   u32 handle;
@@ -41,7 +52,6 @@ struct Texture_Info
 
 ///////////////////////////////////////////////////////
 // @Section: Screenspace primitives]
-typedef struct Primitive2D Primitive2D;
 struct Primitive2D
 {
   Vec2f32 position;
@@ -61,7 +71,6 @@ global Vec2f32 unit_2d_quad[6] = {
   {  0.5f,  0.5f }, { -0.5f,  0.5f }
 };
 
-typedef struct Line2D Line2D;
 struct Line2D
 {
   Vec2f32 p0;
@@ -71,7 +80,6 @@ struct Line2D
 
 ///////////////////////////////////////////////////////
 // @Section: Worldspace primitives
-typedef struct Primitive3D Primitive3D;
 struct Primitive3D
 {
   Transform3f32 transform;
@@ -96,7 +104,6 @@ global Vec3f32 unit_3d_quad[6] = {
   {  0.5f,  0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }
 };
 
-typedef struct Line3D Line3D;
 struct Line3D
 {
   Vec3f32 p0;
@@ -106,7 +113,6 @@ struct Line3D
 
 ///////////////////////////////////////////////////////
 // @Section: Fonts
-typedef struct Glyph Glyph;
 struct Glyph
 {
   Vec2f32 uv_min; /* Top left texture coordinate in atlas */
@@ -116,12 +122,11 @@ struct Glyph
   f32     advance; /* How far - horizontally - to move the cursor after drawing this glyph */
 };
 
-typedef struct Font Font;
 struct Font
 {
-  #define FontSize 96
-  #define MaxFontGlyphs 95
-  Glyph glyphs[MaxFontGlyphs];
+  #define FONT_LOAD_SIZE 96
+  #define MAX_FONT_GLYPHS 95
+  Glyph glyphs[MAX_FONT_GLYPHS];
   u32   texture_id; /* Opengl texture handle for the atlas */
   u32   texture_index; /* Index into renderer's texture array */
   f32   height; /* Pixel size requested when loading the font */
@@ -150,7 +155,6 @@ typedef enum
   Render_Batch_Count,
 } Render_Batch_Kind;
 
-typedef struct Render_Batch Render_Batch;
 struct Render_Batch
 {
   Render_Batch_Kind kind;
@@ -176,7 +180,6 @@ struct Render_Batch
 
 ///////////////////////////////////////////////////////
 // @Section: Renderer
-typedef struct Renderer Renderer;
 struct Renderer
 {
   Arena* arena;
@@ -209,10 +212,11 @@ struct Renderer
 global Renderer g_renderer;
 
 function void r_init();
-function void r_render(Mat4f32 view, Mat4f32 projection);
+function void r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window);
 
 function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_2d_quad_colored(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_point(Vec2f32 position, Vec4f32 color);
 function void    r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color); /* Hollow quad. p0 is bottom left, p1 is top right */
@@ -229,7 +233,6 @@ function void    r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font
 function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 function void    r_draw_3d_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color);
-
 
 function Texture_Info  r_load_texture(String8 path);
 function Texture_Info  r_create_color_texture(Vec4f32 color);

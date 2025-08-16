@@ -1,17 +1,23 @@
 #ifndef OS_INCLUDE_H
 #define OS_INCLUDE_H
 
-///////////////////////////////////////////////////////
-// @Section: OS Handles
-typedef struct OS_Handle OS_Handle;
-struct OS_Handle
-{
-  u64 v[1];
-};
+typedef struct OS_System_Info OS_System_Info;
+typedef struct OS_Process_Info OS_Process_Info;
+typedef struct OS_Launch_Parameters OS_Launch_Parameters;
+typedef struct OS_Memory_Stats OS_Memory_Stats;
+typedef struct File_Data File_Data;
+typedef struct File_Node File_Node;
+typedef struct OS_Window OS_Window;
+typedef struct OS_State OS_State;
+typedef struct File_List File_List;
+typedef struct Keyboard_State Keyboard_State;
+typedef struct Mouse_State Mouse_State;
+typedef struct Input_State Input_State;
+typedef struct OS_Timer OS_Timer;
+typedef struct OS_Date_Time OS_Date_Time;
 
 ///////////////////////////////////////////////////////
 // @Section: System info
-typedef struct OS_System_Info OS_System_Info;
 struct OS_System_Info
 {
   u32 logical_processor_count;
@@ -23,7 +29,6 @@ struct OS_System_Info
 
 ///////////////////////////////////////////////////////
 // @Section: Process Info
-typedef struct OS_Process_Info OS_Process_Info;
 struct OS_Process_Info
 {
   u32 pid;
@@ -37,7 +42,6 @@ struct OS_Process_Info
 
 ///////////////////////////////////////////////////////
 // @Section: Process Launch Parameters
-typedef struct OS_Launch_Parameters OS_Launch_Parameters;
 struct OS_Launch_Parameters
 {
   String8_List cmd_line;
@@ -50,7 +54,6 @@ struct OS_Launch_Parameters
 
 ///////////////////////////////////////////////////////
 // @Section: Memory
-typedef struct OS_Memory_Stats OS_Memory_Stats;
 struct OS_Memory_Stats
 {
   u64 total_physical;
@@ -81,21 +84,18 @@ function b32     os_console_has_input(); /* Returns true if there is input avail
 
 ///////////////////////////////////////////////////////
 // @Section: Files
-typedef struct File_Data File_Data;
 struct File_Data
 {
   String8 path;
   String8 data;
 };
 
-typedef struct File_Node File_Node;
 struct File_Node
 {
   struct File_Node* next;
   File_Data value;
 };
 
-typedef struct File_List File_List;
 struct File_List
 {
   File_Node* first;
@@ -139,7 +139,7 @@ typedef enum
 
 function void os_cursor_set(Cursor_Type cursor); /* Sets system cursor type */
 function void os_cursor_set_position(s32 x, s32 y); /* Moves cursor to screen coordinates */
-function void os_cursor_lock(b32 lock); /* Locks/unlocks cursor to center */
+function void os_cursor_lock(OS_Window* window, Input_State* input, b32 lock); /* Locks/unlocks cursor to center */
 function void os_cursor_hide(b32 hide); /* Hides/shows the cursor */
 
 ///////////////////////////////////////////////////////
@@ -291,13 +291,11 @@ typedef enum
 } Mouse_Button;
 
 #define KEYBOARD_STATE_SIZE 256
-typedef struct Keyboard_State Keyboard_State;
 struct Keyboard_State
 {
   b8 keys[KEYBOARD_STATE_SIZE];
 };
 
-typedef struct Mouse_State Mouse_State;
 struct Mouse_State
 {
   Vec2f32 screen_space;
@@ -305,61 +303,49 @@ struct Mouse_State
   b8 buttons[MouseButton_Count];
 };
 
-typedef struct Input_State Input_State;
 struct Input_State
 {
   Keyboard_State keyboard_current;
   Keyboard_State keyboard_previous;
   Mouse_State   mouse_current;
   Mouse_State   mouse_previous;
+  b32 _g_ignore_next_mouse_move;
+  b32 _g_is_cursor_locked;
 };
 
-global Input_State g_input_state;
+function void _input_init(OS_Window* window, Input_State* input); /* Initializes input state (clears previous + current states) */
+function void _input_update(Input_State* input); /* Updates previous input state with current state (to track deltas and transitions) */
 
-global b32 _g_ignore_next_mouse_move = false;
-global b32 _g_is_cursor_locked       = false;
+function b32 input_is_key_up(Input_State* input, Keyboard_Key key); /* True if the given key is currently up */
+function b32 input_is_key_down(Input_State* input, Keyboard_Key key); /* True if the given key is currently down */
+function b32 input_was_key_up(Input_State* input, Keyboard_Key key); /* True if the given key was up on the previous frame */
+function b32 input_was_key_down(Input_State* input, Keyboard_Key key); /* True if the given key was down on the previous frame */
+function b32 input_is_key_pressed(Input_State* input, Keyboard_Key key); /* True if the given key is down this frame but was up last frame */
 
-function void _input_init(); /* Initializes input state (clears previous + current states) */
-function void _input_update(); /* Updates previous input state with current state (to track deltas and transitions) */
+function b32 input_is_button_up(Input_State* input, Mouse_Button button); /* True if the given mouse button is currently up */
+function b32 input_is_button_down(Input_State* input, Mouse_Button button); /* True if the given mouse button is currently down */
+function b32 input_was_button_up(Input_State* input, Mouse_Button button); /* True if the given mouse button was up on the previous frame */
+function b32 input_was_button_down(Input_State* input, Mouse_Button button); /* True if the given mouse button was down on the previous frame */
+function b32 input_is_button_pressed(Input_State* input, Mouse_Button button); /* True if the given mouse button is down this frame but was up last frame */
 
-///////////////////////////////////////////////////////
-// @Section: Keyboard keys
-function b32 input_is_key_up(Keyboard_Key key); /* True if the given key is currently up */
-function b32 input_is_key_down(Keyboard_Key key); /* True if the given key is currently down */
-function b32 input_was_key_up(Keyboard_Key key); /* True if the given key was up on the previous frame */
-function b32 input_was_key_down(Keyboard_Key key); /* True if the given key was down on the previous frame */
-function b32 input_is_key_pressed(Keyboard_Key key); /* True if the given key is down this frame but was up last frame */
-
-///////////////////////////////////////////////////////
-// @Section: Mouse keys
-function b32 input_is_button_up(Mouse_Button button); /* True if the given mouse button is currently up */
-function b32 input_is_button_down(Mouse_Button button); /* True if the given mouse button is currently down */
-function b32 input_was_button_up(Mouse_Button button); /* True if the given mouse button was up on the previous frame */
-function b32 input_was_button_down(Mouse_Button button); /* True if the given mouse button was down on the previous frame */
-function b32 input_is_button_pressed(Mouse_Button button); /* True if the given mouse button is down this frame but was up last frame */
-
-///////////////////////////////////////////////////////
-// @Section: Input Processing
-function void _input_process_keyboard_key(Keyboard_Key key, b8 is_pressed); /* Internal: Processes a key press/release and updates keyboard state */
-function void _input_process_mouse_button(Mouse_Button button, b32 is_pressed); /* Internal: Processes mouse button press/release and updates mouse state */
-function void _input_process_mouse_cursor(s32 x, s32 y); /* Internal: Updates current mouse cursor position in screen space */
+function void _input_process_keyboard_key(Input_State* input, Keyboard_Key key, b8 is_pressed); /* Internal: Processes a key press/release and updates keyboard state */
+function void _input_process_mouse_button(Input_State* input, Mouse_Button button, b32 is_pressed); /* Internal: Processes mouse button press/release and updates mouse state */
+function void _input_process_mouse_cursor(Input_State* input, s32 x, s32 y); /* Internal: Updates current mouse cursor position in screen space */
 
 ///////////////////////////////////////////////////////
 // @Section: Misc
-function String8 os_executable_path(Arena* arena);
-function String8 os_get_appdata_dir(Arena* arena, String8 project_name);
-function void    os_exit_process(u32 code);
+function String8 os_executable_path(Arena* arena); /* Returns the full executable path */
+function String8 os_get_appdata_dir(Arena* arena, String8 project_name); /* Returns %appdata% path */
+function void    os_exit_process(u32 code); /* Ends current process with code <code> */
 
 ///////////////////////////////////////////////////////
 // @Section: Timer
 
-typedef struct OS_Timer OS_Timer;
 struct OS_Timer
 {
   u64 opaque[2];
 };
 
-typedef struct OS_Date_Time OS_Date_Time;
 struct OS_Date_Time
 {
   u16 year;
@@ -373,7 +359,7 @@ function u64          os_time_milliseconds(); /* Time since boot in milliseconds
 function f64          os_time_seconds(); /* Time since boot in seconds */
 function u64          os_get_epoch_microseconds(); /* Wall clock time since unix epoch (1970-01-01) in microseconds */
 function OS_Date_Time os_datetime_now(); /* Current local date and time */
-function String8      os_datetime_to_string8(Arena* arena, OS_Date_Time date); /* Returns a verbose datetime string */
+function String8      os_datetime_to_string8(Arena* arena, OS_Date_Time date, b32 include_ms); /* Returns a verbose datetime string */
 
 function OS_Timer os_timer_start(); /* Returns a started timer */
 function u64      os_timer_microseconds(OS_Timer *timer); /* Returns timer's elapsed time in microseconds */
@@ -383,7 +369,6 @@ function void     os_timer_reset(OS_Timer *timer); /* Resets a timer */
 
 ///////////////////////////////////////////////////////
 // @Section: OS Global State
-typedef struct OS_State OS_State;
 struct OS_State
 {
   OS_System_Info system_info;
@@ -392,6 +377,52 @@ struct OS_State
 };
 
 global OS_State g_os_state = {0};
+
+// DOC(fz): fz_std only supports one window.
+
+///////////////////////////////////////////////////////
+// @Section: Window
+struct OS_Window
+{
+  Vec2s32 dimensions;
+  String8 title;
+
+  // Win32
+  void* rendering_context; /* HGLRC */
+  void* window_handle;     /* HWND */
+  void* device_context;    /* HDC */
+};
+
+///////////////////////////////////////////////////////
+// @Section: Window Lifecycle
+function b32         os_window_init(s32 width, s32 height, String8 title, OS_Window* out_window, Input_State* out_input); /* Creates a window and initializes input */
+function void        os_window_open(OS_Window* window); /* Shows a window */
+function void        os_window_close(OS_Window* window); /* Closes and destroys a window */
+function b32         os_is_application_running(OS_Window* window, Input_State* input); /* Swaps buffers for the only existing window */
+function Vec2s32     os_window_get_client_dimensions(OS_Window* window); /* Returns screen dimensions. X is width, Y is height */
+function Vec2s32     os_window_client_to_screen(OS_Window* window, Vec2s32 client_point); /* Converts client (window area) coordinates to screen (display) coordinates */
+
+///////////////////////////////////////////////////////
+// @Section: Window Flags
+function b32  os_window_is_fullscreen(OS_Window* window); /* True if fullscreen */
+function void os_window_set_fullscreen(OS_Window* window, b32 set); /* Enables/disables fullscreen */
+function b32  os_window_is_maximized(OS_Window* window); /* True if maximized */
+function void os_window_set_maximized(OS_Window* window, b32 set); /* Maximizes/restores window */
+function b32  os_window_is_minimized(OS_Window* window); /* True if minimized */
+function void os_window_set_minimized(OS_Window* window, b32 set); /* Minimizes/restores window */
+function void os_swap_buffers(OS_Window* window); /* Swaps buffers */
+
+///////////////////////////////////////////////////////
+// @Section: Window Appearance
+function void os_window_set_visible(OS_Window* window, b32 visible); /* Show or hide the window */
+function b32  os_window_set_title(OS_Window* window, String8 title); /* Sets window title */
+function void os_window_clear_custom_border_data(); /* Resets border override (Windows only) */
+function void os_window_push_custom_title_bar(f32 thickness); /* Define title bar area */
+function void os_window_push_custom_edges(f32 thickness); /* Define draggable edges */
+function void os_window_push_custom_title_bar_client_area(); /* Client title bar rect */
+function void os_window_set_position(OS_Window* window, Vec2f32 pos); /* Set window top-left position */
+function void os_window_set_size(OS_Window* window, s32 width, s32 height); /* Set client size (non-fullscreen) */
+
 
 ///////////////////////////////////////////////////////
 // @Section: Entry point
@@ -404,7 +435,7 @@ global b32 g_is_program_running = true;
 
 ///////////////////////////////////////////////////////
 // @Section: Window
-typedef void (*WindowResizeCallback)(s32 width, s32 height);
+typedef void (*WindowResizeCallback)(OS_Window* window, s32 width, s32 height);
 global WindowResizeCallback g_os_resize_callback;
 
 ///////////////////////////////////////////////////////
