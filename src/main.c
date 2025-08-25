@@ -2,7 +2,8 @@
 
 Texture_Info g_tex_black;
 Texture_Info g_tex_red;
-Texture_Info g_blue;
+Texture_Info g_tex_color_blue;
+Texture_Info g_tex_color_yellow;
 
 function void
 entry_point(Command_Line* command_line)
@@ -10,7 +11,7 @@ entry_point(Command_Line* command_line)
   Arena* arena = arena_alloc();
 
   os_console_init();
-  os_window_init(600, 600, PROJECT_NAME, &g_window, &g_input);
+  os_window_init(400, 400, PROJECT_NAME, &g_window, &g_input);
   os_opengl_init(&g_window);
   os_window_open(&g_window);
 
@@ -35,7 +36,8 @@ entry_point(Command_Line* command_line)
 
   g_tex_black = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
   g_tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  g_blue      = r_create_color_texture(COLOR_BLUE(1.0f));
+  g_tex_color_blue = r_create_color_texture(COLOR_BLUE(1.0f));
+  g_tex_color_yellow = r_create_color_texture(COLOR_YELLOW(1.0f));
   
   while(os_is_application_running(&g_window, &g_input))
   {
@@ -63,12 +65,34 @@ simulation(Arena* frame_arena)
 {
   camera_update(&g_camera, &g_window, &g_input, g_delta_time);
 
+  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_FORWARD, WORLD_RIGHT,   1, 16, COLOR_RED(0.2));
+  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP,      WORLD_FORWARD, 1, 16, COLOR_GREEN(0.4));
+  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_RIGHT,   WORLD_UP,      1, 16, COLOR_BLUE(0.2));
+
   r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), COLOR_RED(1.0f));
   r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), COLOR_GREEN(1.0f));
   r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), COLOR_BLUE(1.0f));
 
-  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, COLOR_GRAY(0.4));
+  r_draw_3d_quad(transform3f32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_color_blue.index);
 
+  r_draw_3d_box(vec3f32(-2.0f, 2.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), 2.0f, COLOR_BLUE(1));
+
+  r_draw_3d_triangle(transform3f32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_red.index);
+  r_draw_3d_triangle(transform3f32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_color_blue.index);
+    
+  r_draw_3d_quad(transform3f32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_black.index);
+  r_draw_3d_quad(transform3f32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_red.index);
+  r_draw_3d_quad(transform3f32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_color_blue.index);
+  r_draw_3d_quad(transform3f32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_WHITE(1.0f), g_tex_color_yellow.index);
+
+  r_draw_2d_quad_colored(vec2f32(30.f  + 10, 32.f), vec2f32(50.f, 50.f), COLOR_RED(1.0f));
+  r_draw_2d_quad_colored(vec2f32(90.f  + 10, 32.f), vec2f32(50.f, 50.f), COLOR_GREEN(1.0f));
+  r_draw_2d_quad_colored(vec2f32(150.f + 10, 32.f), vec2f32(50.f, 50.f),  COLOR_BLUE(1.0f));
+
+  f32 transition = 0.0f;
+  r_draw_2d_quad_colored(vec2f32(210.f + 10, 32.f), vec2f32(50.f, 50.f), COLOR_PINK(sinf(Radians(g_frame_counter))));
+
+  r_draw_2d_triangle(vec2f32(30.f, 200.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), COLOR_RED(1.0f), g_tex_black.index);
 
   u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
   r_draw_2d_text(vec2f32(10.0f, g_window.dimensions.y - 15.0f), 24.0f, COLOR_BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));

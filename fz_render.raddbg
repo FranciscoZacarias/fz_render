@@ -1,7 +1,8 @@
 // raddbg 0.9.20 project file
 
-recent_file: path: "src/fz_std/os/win32/os_win32.c"
+recent_file: path: "src/fz_std/opengl/win32/win32_opengl.c"
 recent_file: path: "src/main.c"
+recent_file: path: "src/fz_std/os/win32/os_win32.c"
 recent_file: path: "../../a/_work/1/s/src/vctools/crt/vcruntime/src/string/amd64/memset.asm"
 recent_file: path: "src/fz_std/base/memory.c"
 recent_file: path: "src/fz_std/base/string.c"
@@ -59,9 +60,4 @@ breakpoint:
 {
   source_location: "src/main.c:38:1"
   hit_count: 0
-}
-breakpoint:
-{
-  source_location: "src/fz_std/os/win32/os_win32.c:756:1"
-  hit_count: 1
 }

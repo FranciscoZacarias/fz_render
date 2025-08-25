@@ -50,6 +50,18 @@
 # define read_only
 #endif
 
+#if COMPILER_MSVC
+# define thread_static __declspec(thread)
+#elif COMPILER_CLANG || COMPILER_GCC
+# define thread_static __thread
+#endif
+
+#if COMPILER_MSVC
+# define force_inline __forceinline
+#elif COMPILER_CLANG || COMPILER_GCC
+# define force_inline __attribute__((always_inline))
+#endif
+
 #if DEBUG
 # define Assert(condition) Statement( if (!(condition)){ AssertBreak(condition); } )
 # define AssertNoReentry() Statement(local_persist b32 triggered = 0;Assert(triggered == 0); triggered = 1;) 

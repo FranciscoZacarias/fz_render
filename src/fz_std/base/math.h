@@ -84,7 +84,6 @@ typedef union Vec4f32 { f32 data[4]; struct { f32 x, y, z, w; }; } Vec4f32;
 typedef union Vec4f64 { f64 data[4]; struct { f64 x, y, z, w; }; } Vec4f64;
 #define vec4f64(x,y,z,w) ((Vec4f64){x,y,z,w})
 
-
 // @Section: Matrix
 typedef union Mat4f32 {
   f32 data[4][4];
@@ -127,6 +126,18 @@ struct Transform2f32 {
   Vec2f32 scale;
 };
 #define transform2f32(t,r,s) (Transform2f32){t,r,s}
+
+// @Section: Range types
+
+
+typedef union Range2f32 Range2f32;
+union Range2f32
+{
+  struct { Vec2f32 min; Vec2f32 max; };
+  struct { Vec2f32 p0;  Vec2f32 p1;  };
+  struct { f32 x0, y0;  f32 x1, y1;  };
+  Vec2f32 v[2];
+};
 
 function f32 f32_min(f32 a, f32 b);
 function f32 f32_max(f32 a, f32 b);

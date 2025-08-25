@@ -44,4 +44,5 @@ function void    camera_look_at(Camera3D* camera, Vec3f32 target);
 function void    camera_set_euler(Camera3D* camera, f32 pitch, f32 yaw, f32 roll);
 function void    camera_set_speed(Camera3D* camera, u32 speed);
 
+
 #endif // FZ_CAMERA_H
