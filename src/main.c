@@ -23,9 +23,9 @@ entry_point(Command_Line* command_line)
   r_init();
 
   // Camera
-  camera_init(&g_camera, 8.0f);
+  camera3d_init(&g_camera, 8.0f);
   g_camera.position = vec3f32(-1.0f, 1.0f, 5.0f);
-  camera_look_at(&g_camera, vec3f32(0.0f, 0.0f, 0.0f));
+  camera3d_look_at(&g_camera, vec3f32(0.0f, 0.0f, 0.0f));
 
   // Time
   g_frame_timer = os_timer_start();
@@ -51,7 +51,7 @@ entry_point(Command_Line* command_line)
 
     input_update();
     simulation(frame_arena);
-    r_render(camera_get_view_matrix(&g_camera), mat4f32_perspective(g_camera.fov, g_os_window.dimensions.x, g_os_window.dimensions.y, 0.1f, 100.0f));
+    r_render(camera3d_get_view_matrix(&g_camera), mat4f32_perspective(g_camera.fov, g_os_window.dimensions.x, g_os_window.dimensions.y, 0.1f, 100.0f));
 
     // Close frame
     {
@@ -63,7 +63,7 @@ entry_point(Command_Line* command_line)
 function void
 simulation(Arena* frame_arena)
 {
-  camera_update(&g_camera, &input, g_delta_time);
+  camera3d_update(&g_camera, &input, g_delta_time);
 
   r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_FORWARD, WORLD_RIGHT,   1, 16, COLOR_RED(0.2));
   r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP,      WORLD_FORWARD, 1, 16, COLOR_GREEN(1.0f));

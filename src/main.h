@@ -14,14 +14,14 @@
 #define PROJECT_NAME S("fz_render")
 
 // *.h
-#include "camera.h"
+#include "camera3d.h"
 #include "renderer.h"
 
 // *.c
-#include "camera.c"
+#include "camera3d.c"
 #include "renderer.c"
 
-global Camera g_camera;
+global Camera3D g_camera;
 global Input_State input;
 
 OS_Timer g_frame_timer   = {0};
