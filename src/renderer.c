@@ -643,7 +643,7 @@ r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances)
 }
 
 function void
-r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
+r_render(Mat4f32 view, Mat4f32 projection)
 {
   // Bind textures
   for (u32 idx = 0; idx < g_renderer.texture_count; idx += 1)
@@ -709,7 +709,7 @@ r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_triangle]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_triangle]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_triangle]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_triangle]->u_screen_size_location, (f32)g_os_window.dimensions.x, (f32)g_os_window.dimensions.y);
 
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_triangle]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_triangle]->count, g_renderer.batches[Render_Batch_SS_triangle]->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_triangle]->count);
@@ -720,7 +720,7 @@ r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_quad]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_quad]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_quad]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_quad]->u_screen_size_location, (f32)g_os_window.dimensions.x, (f32)g_os_window.dimensions.y);
 
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_quad]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_quad]->count, g_renderer.batches[Render_Batch_SS_quad]->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_quad]->count);
@@ -731,7 +731,7 @@ r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_text]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_text]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.batches[Render_Batch_SS_text]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.batches[Render_Batch_SS_text]->u_screen_size_location, (f32)g_os_window.dimensions.x, (f32)g_os_window.dimensions.y);
 
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_text]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_text]->count, g_renderer.batches[Render_Batch_SS_text]->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_text]->count);
@@ -747,7 +747,7 @@ r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_Line]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_Line]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_line, g_renderer.batches[Render_Batch_SS_Line]->u_screen_size_location, window->dimensions.x, window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_line, g_renderer.batches[Render_Batch_SS_Line]->u_screen_size_location, (f32)g_os_window.dimensions.x, (f32)g_os_window.dimensions.y);
     
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_Line]->instance_vbo, 0, sizeof(Line2D) * g_renderer.batches[Render_Batch_SS_Line]->count, g_renderer.batches[Render_Batch_SS_Line]->data);
     glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.batches[Render_Batch_SS_Line]->count);
@@ -755,7 +755,7 @@ r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window)
     glDepthFunc(GL_LESS); 
   }
 
-  os_swap_buffers(window);
+  os_swap_buffers();
 
   glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

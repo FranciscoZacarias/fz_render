@@ -139,7 +139,7 @@ typedef enum
 
 function void os_cursor_set(Cursor_Type cursor); /* Sets system cursor type */
 function void os_cursor_set_position(s32 x, s32 y); /* Moves cursor to screen coordinates */
-function void os_cursor_lock(OS_Window* window, Input_State* input, b32 lock); /* Locks/unlocks cursor to center */
+function void os_cursor_lock(Input_State* input, b32 lock); /* Locks/unlocks cursor to center */
 function void os_cursor_hide(b32 hide); /* Hides/shows the cursor */
 
 ///////////////////////////////////////////////////////
@@ -313,7 +313,7 @@ struct Input_State
   b32 _g_is_cursor_locked;
 };
 
-function void _input_init(OS_Window* window, Input_State* input); /* Initializes input state (clears previous + current states) */
+function void _input_init(Input_State* input); /* Initializes input state (clears previous + current states) */
 function void _input_update(Input_State* input); /* Updates previous input state with current state (to track deltas and transitions) */
 
 function b32 input_is_key_up(Input_State* input, Keyboard_Key key); /* True if the given key is currently up */
@@ -392,36 +392,38 @@ struct OS_Window
   void* window_handle;     /* HWND */
   void* device_context;    /* HDC */
 };
+global OS_Window g_os_window;
 
 ///////////////////////////////////////////////////////
 // @Section: Window Lifecycle
-function b32         os_window_init(s32 width, s32 height, String8 title, OS_Window* out_window, Input_State* out_input); /* Creates a window and initializes input */
-function void        os_window_open(OS_Window* window); /* Shows a window */
-function void        os_window_close(OS_Window* window); /* Closes and destroys a window */
-function b32         os_is_application_running(OS_Window* window, Input_State* input); /* Swaps buffers for the only existing window */
-function Vec2s32     os_window_get_client_dimensions(OS_Window* window); /* Returns screen dimensions. X is width, Y is height */
-function Vec2s32     os_window_client_to_screen(OS_Window* window, Vec2s32 client_point); /* Converts client (window area) coordinates to screen (display) coordinates */
+function b32         os_window_init(s32 width, s32 height, String8 title, Input_State* out_input); /* Creates a window and initializes input */
+function void        os_window_open(); /* Shows a window */
+function void        os_window_close(); /* Closes and destroys a window */
+function b32         os_is_application_running(Input_State* input); /* Swaps buffers for the only existing window */
+function OS_Window   os_window_get(); /* Returns the window handle */
+function Vec2s32     os_window_get_client_dimensions(); /* Returns screen dimensions. X is width, Y is height */
+function Vec2s32     os_window_client_to_screen(Vec2s32 client_point); /* Converts client (window area) coordinates to screen (display) coordinates */
 
 ///////////////////////////////////////////////////////
 // @Section: Window Flags
-function b32  os_window_is_fullscreen(OS_Window* window); /* True if fullscreen */
-function void os_window_set_fullscreen(OS_Window* window, b32 set); /* Enables/disables fullscreen */
-function b32  os_window_is_maximized(OS_Window* window); /* True if maximized */
-function void os_window_set_maximized(OS_Window* window, b32 set); /* Maximizes/restores window */
-function b32  os_window_is_minimized(OS_Window* window); /* True if minimized */
-function void os_window_set_minimized(OS_Window* window, b32 set); /* Minimizes/restores window */
-function void os_swap_buffers(OS_Window* window); /* Swaps buffers */
+function b32  os_window_is_fullscreen(); /* True if fullscreen */
+function void os_window_set_fullscreen(b32 set); /* Enables/disables fullscreen */
+function b32  os_window_is_maximized(); /* True if maximized */
+function void os_window_set_maximized(b32 set); /* Maximizes/restores window */
+function b32  os_window_is_minimized(); /* True if minimized */
+function void os_window_set_minimized(b32 set); /* Minimizes/restores window */
+function void os_swap_buffers(); /* Swaps buffers */
 
 ///////////////////////////////////////////////////////
 // @Section: Window Appearance
-function void os_window_set_visible(OS_Window* window, b32 visible); /* Show or hide the window */
-function b32  os_window_set_title(OS_Window* window, String8 title); /* Sets window title */
+function void os_window_set_visible(b32 visible); /* Show or hide the window */
+function b32  os_window_set_title(String8 title); /* Sets window title */
 function void os_window_clear_custom_border_data(); /* Resets border override (Windows only) */
 function void os_window_push_custom_title_bar(f32 thickness); /* Define title bar area */
 function void os_window_push_custom_edges(f32 thickness); /* Define draggable edges */
 function void os_window_push_custom_title_bar_client_area(); /* Client title bar rect */
-function void os_window_set_position(OS_Window* window, Vec2f32 pos); /* Set window top-left position */
-function void os_window_set_size(OS_Window* window, s32 width, s32 height); /* Set client size (non-fullscreen) */
+function void os_window_set_position(Vec2f32 pos); /* Set window top-left position */
+function void os_window_set_size(s32 width, s32 height); /* Set client size (non-fullscreen) */
 
 
 ///////////////////////////////////////////////////////
@@ -435,7 +437,7 @@ global b32 g_is_program_running = true;
 
 ///////////////////////////////////////////////////////
 // @Section: Window
-typedef void (*WindowResizeCallback)(OS_Window* window, s32 width, s32 height);
+typedef void (*WindowResizeCallback)(s32 width, s32 height);
 global WindowResizeCallback g_os_resize_callback;
 
 ///////////////////////////////////////////////////////

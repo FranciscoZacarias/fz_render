@@ -137,6 +137,12 @@
 # define ARCH_ADDRSIZE 32
 #endif
 
+#if COMPILER_MSVC
+# define thread_static __declspec(thread)
+#elif COMPILER_CLANG || COMPILER_GCC
+# define thread_static __thread
+#endif
+
 #if OS_WINDOWS
 # define shared_function C_LINKAGE __declspec(dllexport)
 #else

@@ -1,16 +1,16 @@
 ///////////////////////////////////////////////////////
 // @Section: Input
 function void
-_input_init(OS_Window* window, Input_State* input)
+_input_init(Input_State* input)
 {
   AssertNoReentry();
   MemoryZeroStruct(input);
 
-  input->mouse_current.screen_space.x = window->dimensions.x/2;
-  input->mouse_current.screen_space.y = window->dimensions.y/2;
+  input->mouse_current.screen_space.x = g_os_window.dimensions.x/2;
+  input->mouse_current.screen_space.y = g_os_window.dimensions.y/2;
   
-  input->mouse_previous.screen_space.x = window->dimensions.x/2;
-  input->mouse_previous.screen_space.y = window->dimensions.y/2;
+  input->mouse_previous.screen_space.x = g_os_window.dimensions.x/2;
+  input->mouse_previous.screen_space.y = g_os_window.dimensions.y/2;
 
   input->_g_ignore_next_mouse_move = false;
   input->_g_is_cursor_locked       = false;

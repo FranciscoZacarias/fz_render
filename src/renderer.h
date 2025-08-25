@@ -212,7 +212,7 @@ struct Renderer
 global Renderer g_renderer;
 
 function void r_init();
-function void r_render(Mat4f32 view, Mat4f32 projection, OS_Window* window);
+function void r_render(Mat4f32 view, Mat4f32 projection);
 
 function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
